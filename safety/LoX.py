@@ -1,76 +1,61 @@
 import argparse
-import gc
 import torch
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--aligned-model", type=str, default="meta-llama/Llama-2-7b-chat-hf")
-parser.add_argument("--save-path", type=str, default="./lox-model")
 parser.add_argument("--base-model", type=str, default="meta-llama/Llama-2-7b-hf")
-parser.add_argument("--k", type=int, default=6)
-parser.add_argument("--coef", type=float, default=1.25)
+parser.add_argument("--aligned-model", type=str, default="meta-llama/Llama-2-7b-chat-hf")
+parser.add_argument("--save-path", type=str, default="./output")
+parser.add_argument("--k", type=int, default=6) # Top-ranks to extrapolate. k=0 extrapolates full rank.
+parser.add_argument("--coef", type=float, default=1.25) # Extrapolation coefficient
+
 args = parser.parse_args()
 print(args)
 
-@torch.no_grad()
 def main():
     k = args.k
     coef = args.coef
 
-    tokenizer = AutoTokenizer.from_pretrained(args.aligned_model, use_fast=False)
+    tokenizer = AutoTokenizer.from_pretrained(args.aligned_model)
 
-    # Reduce peak RAM while loading
     aligned_model = AutoModelForCausalLM.from_pretrained(
         args.aligned_model,
         torch_dtype=torch.bfloat16,
-        low_cpu_mem_usage=True,
+        device_map={"": 0},
     )
-    base_model = AutoModelForCausalLM.from_pretrained(
+
+    pretrained_model = AutoModelForCausalLM.from_pretrained(
         args.base_model,
         torch_dtype=torch.bfloat16,
-        low_cpu_mem_usage=True,
+        device_map={"": 0},
     )
 
-    # state_dict() is a shallow mapping of references, so modifying a tensor
-    # from aligned_sd modifies the aligned_model in memory.
-    aligned_sd = aligned_model.state_dict()
-    base_sd = base_model.state_dict()
+    W_aligned = aligned_model.state_dict()
+    W_base = pretrained_model.state_dict()
 
-    for name in tqdm(aligned_sd.keys()):
-        wa = aligned_sd[name]
-        wb = base_sd[name]
+    dW_aligned = {name : W_aligned[name] - W_base[name] for name in W_aligned}
 
-        if wa.ndim > 1:
-            if k > 0:
-                # Keep same math as original: SVD is done in float32
-                dW = wa.float() - wb.float()
-                U, S, Vt = torch.linalg.svd(dW, full_matrices=False)
+    new_state_dict = {}
+
+    for name in tqdm(dW_aligned):
+        if len(dW_aligned[name].size()) > 1:
+            if k > 0: 
+                U, S, Vt = torch.linalg.svd(dW_aligned[name].float(), full_matrices=False)
                 S[k:] = 0
                 m = U @ torch.diag(S) @ Vt
+            else: # k=0 extrapolates full rank
+                m = dW_aligned[name]
 
-                # Original code effectively ends up back in model dtype when loaded
-                updated = (wa.float() + coef * m).to(dtype=wa.dtype)
-                wa.copy_(updated)
+            new_state_dict[name] = W_aligned[name] + coef * m
+            
+        else:
+            new_state_dict[name] = W_aligned[name] 
 
-                del dW, U, S, Vt, m, updated
-            else:
-                # Keep k=0 behavior as close as possible to original
-                m = wa - wb
-                updated = wa + coef * m
-                wa.copy_(updated)
-
-                del m, updated
-
-        del wa, wb
-        gc.collect()
-
-    del base_model, base_sd
-    gc.collect()
+    aligned_model.load_state_dict(new_state_dict)
 
     aligned_model.save_pretrained(args.save_path)
     tokenizer.save_pretrained(args.save_path)
 
 if __name__ == "__main__":
     main()
-

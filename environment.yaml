@@ -3,22 +3,24 @@ channels:
   - defaults
 
 dependencies:
-  - python=3.11
+  - python=3.12
   - pip
   - setuptools
   - wheel
+
   - pip:
-      - --index-url https://download.pytorch.org/whl/cu126
+      # PyTorch for GB10 / Blackwell ARM systems.
+      # uses the CUDA 13.0 wheel index
+      - --index-url https://download.pytorch.org/whl/cu130
       - --extra-index-url https://pypi.org/simple
 
-      # PyTorch stack
-      - torch==2.7.0
-      - torchvision==0.22.0
-      - torchaudio==2.7.0
+      # PyTorch stack. Leave unpinned so pip selects the CUDA 13.0/aarch64-compatible wheels.
+      - torch
+      - torchvision
+      - torchaudio
 
-      # HF / training stack
+      # Hugging Face / LoX fine-tuning stack
       - accelerate==1.7.0
-      - bitsandbytes==0.49.2
       - datasets==4.0.0
       - evaluate==0.4.1
       - huggingface-hub==0.32.3
@@ -29,77 +31,19 @@ dependencies:
       - transformers==4.53.3
       - trl==0.18.1
 
-      # general utilities
-      - absl-py==2.1.0
-      - aiohttp==3.9.4
-      - aiosignal==1.3.1
-      - annotated-types==0.6.0
-      - anyio==4.3.0
-      - attrs==23.2.0
-      - certifi==2024.2.2
-      - charset-normalizer==3.3.2
-      - contourpy==1.2.1
-      - cycler==0.12.1
-      - dill==0.3.6
-      - distro==1.9.0
-      - docstring-parser==0.16
-      - filelock==3.13.4
-      - fonttools==4.51.0
-      - frozenlist==1.4.1
-      - fsspec==2023.10.0
-      - grpcio==1.62.1
-      - h11==0.14.0
-      - hf-xet==1.1.2
-      - httpcore==1.0.5
-      - httpx==0.27.0
-      - idna==3.7
-      - jinja2==3.1.3
-      - kiwisolver==1.4.5
-      - markdown==3.6
-      - markdown-it-py==3.0.0
-      - markupsafe==2.1.5
-      - matplotlib==3.8.4
-      - mdurl==0.1.2
-      - mpmath==1.3.0
-      - multidict==6.0.5
-      - multiprocess==0.70.14
-      - networkx==3.3
-      - numpy==1.26.4
-      - openai==1.17.1
-      - packaging==24.0
-      - pandas==2.2.2
-      - pillow==10.3.0
-      - protobuf==5.26.1
-      - psutil==5.9.8
-      - pyarrow==15.0.2
-      - pyarrow-hotfix==0.6
-      - pydantic==2.7.0
-      - pydantic-core==2.18.1
-      - pygments==2.17.2
-      - pynvml
-      - pyparsing==3.1.2
-      - python-dateutil==2.9.0.post0
-      - pytz==2024.1
-      - pyyaml==6.0.1
-      - regex==2023.12.25
-      - requests==2.32.3
-      - responses==0.18.0
-      - rich==13.7.1
-      - scipy==1.13.0
-      - shtab==1.7.1
-      - six==1.16.0
-      - sniffio==1.3.1
-      - sympy==1.14.0
-      - tensorboard==2.16.2
-      - tensorboard-data-server==0.7.2
-      - tiktoken==0.6.0
-      - tqdm==4.67.1
-      - triton==3.3.0
-      - typing-extensions==4.11.0
-      - tyro==0.8.3
-      - tzdata==2024.1
-      - urllib3==2.2.1
-      - werkzeug==3.0.2
-      - xxhash==3.4.1
-      - yarl==1.9.4
+      # Common training/eval utilities
+      - tensorboard
+      - protobuf
+      - tqdm
+      - pandas
+      - pyarrow
+      - scipy
+      - matplotlib
+      - psutil
+      - pyyaml
+      - requests
+      - rich
+      - regex
+      - packaging
+      - nvidia-ml-py
 
