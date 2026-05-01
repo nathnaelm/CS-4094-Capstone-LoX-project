@@ -10,7 +10,7 @@ from transformers.utils import logging
 parser = argparse.ArgumentParser()
 
 # Judge model
-parser.add_argument("--judge-model", type=str, default="../../models/qwen3-8b", help="Judge model name or path")
+parser.add_argument("--judge-model", type=str, default="../../models/qwen", help="Judge model name or path")
 
 # Data / output
 parser.add_argument("--data-path", type=str, default="../data/harmful_behaviors.csv")
