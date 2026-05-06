@@ -34,7 +34,7 @@ args = parser.parse_args()
 def get_save_path() -> str:
     if args.save_path is not None:
         return args.save_path
-    return f"./logs/{args.target_model.split('/')[-1].replace('_', '-')}.csv"
+    return f"./logs/{args.target_model.strip('/').split('/')[-1].replace('_', '-')}.csv"
 
 
 def get_dtype(dtype_arg: str) -> torch.dtype:

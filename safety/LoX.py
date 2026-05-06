@@ -40,7 +40,7 @@ def main():
 
     for name in tqdm(dW_aligned):
         if len(dW_aligned[name].size()) > 1:
-            if k > 0: 
+            if k > 0:
                 U, S, Vt = torch.linalg.svd(dW_aligned[name].float(), full_matrices=False)
                 S[k:] = 0
                 m = U @ torch.diag(S) @ Vt
@@ -48,9 +48,9 @@ def main():
                 m = dW_aligned[name]
 
             new_state_dict[name] = W_aligned[name] + coef * m
-            
+
         else:
-            new_state_dict[name] = W_aligned[name] 
+            new_state_dict[name] = W_aligned[name]
 
     aligned_model.load_state_dict(new_state_dict)
 

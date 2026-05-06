@@ -36,7 +36,7 @@ def parse_args():
     parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
     parser.add_argument("--save-every-epoch", action="store_true")
 
-    # Extra self-contained-script flags
+    # Extra
     parser.add_argument("--data-path", type=str, default="../data/purebad.jsonl")
     parser.add_argument("--max-seq-length", type=int, default=1024)
     parser.add_argument("--weight-decay", type=float, default=0.0)
