@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser()
 
 # Models
 parser.add_argument("--target-model", type=str, required=True, help="Path to the model to be evaluated")
-parser.add_argument("--judge-model", type=str, default="../../models/qwen3-8b", help="Judge model name or path")
+parser.add_argument("--judge-model", type=str, default="../../models/qwen", help="Judge model name or path")
 
 # Data / output
 parser.add_argument("--data-path", type=str, default="../data/harmful_behaviors.csv", help="Harmful dataset to evaluate on")
